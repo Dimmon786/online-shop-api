@@ -1,16 +1,32 @@
 <?php
 
+/**
+ * @OA\OpenApi(
+ *     @OA\Info(
+ *         title="Online Shop API",
+ *         version="1.0.0",
+ *         description="REST API für Kategorien und Produkte (Slim + MySQL)"
+ *     )
+ * )
+*/
+
+namespace PublicFolder;
+
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
+use OpenApi\Annotations as OA;
 
 require __DIR__ . "/../vendor/autoload.php";
 
 require_once "../src/db.php";
-global $connection;
 
+require_once __DIR__ . "/auth.php";
+global $config;
 
 $app = AppFactory::create();
+global $connection;
 
 $app->setBasePath('/project/public');
 
@@ -20,15 +36,51 @@ $app->addRoutingMiddleware();
 $app->addErrorMiddleware(true, true, true);
 
 
-/**
- * @OA\Info(
- *     title="Online-Shop API",
- *     version="1.0.0",
- *     description="REST-API für Kategorien und Produkte"
- * )
- */
+$app->post('/login', function (Request $request, Response $response){
+    global $config;
 
+    $data = $request->getParsedBody();
 
+    $userName = $data["userName"] ?? null;
+    $password = $data["password"] ?? null;
+
+    // Pflichtfelder prüfen
+    if ($userName === null || $password === null) {
+        $response->getBody()->write(json_encode([
+            "error" => "Username und Passwort sind Pflichtfelder"
+        ]));
+        return $response->withStatus(400)->withHeader("Content-Type", "application/json");
+    }
+
+    // Login prüfen
+    if ($userName !== $config["auth_user"] || $password !== $config["auth_pass"]) {
+        $response->getBody()->write(json_encode([
+            "error" => "Ungültige Login-Daten"
+        ]));
+        return $response->withStatus(401)->withHeader("Content-Type", "application/json");
+    }
+
+        // Token erstellen
+        $token = createToken(1);
+
+        // Token im Cookie speichern
+        setcookie(
+            "auth_token",
+            $token,
+            time() + $config["jwt_lifetime"],
+            "/",
+            "",
+            false,
+            true
+        );
+
+         // Erfolg zurückgeben
+        $response->getBody()->write(json_encode([
+            "message" => "Login erfolgreich"
+        ]));
+
+        return $response->withHeader("Content-Type", "application/json");
+});
 
 /**
  * @OA\Get(
@@ -56,6 +108,11 @@ $app->addErrorMiddleware(true, true, true);
  *         )
  *     ),
  *
+ * *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *     ), 
+ * 
  *     @OA\Response(
  *         response=404,
  *         description="Kategorie wurde nicht gefunden"
@@ -72,6 +129,14 @@ $app->addErrorMiddleware(true, true, true);
 
 // Category Get Route, Holt eine Kategorie anhand der ID
 $app->get('/category/{category_id}', function (Request $request, Response $response, $args) {
+
+    if (!requireAuth()) {
+        $response->getBody()->write(json_encode([
+            "error" => "Unauthorized"
+        ]));
+        return $response->withStatus(401)->withHeader("Content-Type", "application/json");
+    }
+
     global $connection;
     
     // Holt die Kategorie aus der Datenbank
@@ -86,14 +151,13 @@ $app->get('/category/{category_id}', function (Request $request, Response $respo
 
         if ($row_count == 0) {
             return $response->withStatus(404);
-
+        }
         // Daten auslesen
         $category = mysqli_fetch_assoc($result);
 
         // JSON zurückgeben
         $response->getBody()->write(json_encode($category));
         return $response->withHeader("Content-Type", "application/json");
-    }
 
 });
 
@@ -131,6 +195,11 @@ $app->get('/category/{category_id}', function (Request $request, Response $respo
  *         description="Fehlende oder ungültige Felder"
  *     ),
  *
+ *  *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *     ),
+ * 
  *     @OA\Response(
  *         response=500,
  *         description="Interner Serverfehler"
@@ -140,6 +209,14 @@ $app->get('/category/{category_id}', function (Request $request, Response $respo
 
 // Category Post Route, Erstellt eine neue Kategorie
 $app->post('/category', function (Request $request, Response $response, $args) {
+
+    if (!requireAuth()) {
+        $response->getBody()->write(json_encode([
+            "error" => "Unauthorized"
+        ]));
+        return $response->withStatus(401)->withHeader("Content-Type", "application/json");
+    }
+
     global $connection;
 
     //  Holt die JSON-Daten aus der Anfrage
@@ -214,6 +291,11 @@ $app->post('/category', function (Request $request, Response $response, $args) {
  *         )
  *     ),
  *
+ *  *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *     ),
+ * 
  *     @OA\Response(
  *         response=404,
  *         description="Kategorie wurde nicht gefunden"
@@ -228,6 +310,14 @@ $app->post('/category', function (Request $request, Response $response, $args) {
 
 // Category Put Route, Aktualisiert eine bestehende Kategorie
 $app->put("/category/{category_id}", function (Request $request, Response $response, $args) {
+
+    if (!requireAuth()) {
+        $response->getBody()->write(json_encode([
+            "error" => "Unauthorized"
+        ]));
+        return $response->withStatus(401)->withHeader("Content-Type", "application/json");
+    }
+
     global $connection;
 
     // Holt die ID aus der URL
@@ -300,6 +390,11 @@ $app->put("/category/{category_id}", function (Request $request, Response $respo
  *         )
  *     ),
  *
+ *  *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *     ),
+ * 
  *     @OA\Response(
  *         response=404,
  *         description="Kategorie wurde nicht gefunden"
@@ -314,6 +409,14 @@ $app->put("/category/{category_id}", function (Request $request, Response $respo
 
 // Category Delete Route, Löscht eine Kategorie anhand der ID
 $app->delete("/category/{category_id}", function (Request $request, Response $response, $args) {
+
+    if (!requireAuth()) {
+        $response->getBody()->write(json_encode([
+            "error" => "Unauthorized"
+        ]));
+        return $response->withStatus(401)->withHeader("Content-Type", "application/json");
+    }
+
     global $connection;
 
     // Holt die ID der Kategorie
@@ -379,6 +482,11 @@ $app->delete("/category/{category_id}", function (Request $request, Response $re
  *         )
  *     ),
  *
+ *  *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *     ),
+ * 
  *     @OA\Response(
  *         response=404,
  *         description="Produkt wurde nicht gefunden"
@@ -395,6 +503,14 @@ $app->delete("/category/{category_id}", function (Request $request, Response $re
 
 // Product Get Rout, Holt ein Produkt anhand der ID
 $app->get("/product/{product_id}", function (Request $request, Response $response, $args) {
+
+    if (!requireAuth()) {
+        $response->getBody()->write(json_encode([
+            "error" => "Unauthorized"
+        ]));
+        return $response->withStatus(401)->withHeader("Content-Type", "application/json");
+    }
+
     global $connection;
 
     // Holt die product_id aus der UR
@@ -465,6 +581,11 @@ $app->get("/product/{product_id}", function (Request $request, Response $respons
  *         )
  *     ),
  *
+ *  *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *     ),
+ * 
  *     @OA\Response(
  *         response=500,
  *         description="Interner Serverfehler"
@@ -474,6 +595,14 @@ $app->get("/product/{product_id}", function (Request $request, Response $respons
 
 // Product Post Rout, Erstellt ein neues Produkt
 $app->post("/product", function (Request $request, Response $response, $args) {
+
+    if (!requireAuth()) {
+        $response->getBody()->write(json_encode([
+            "error" => "Unauthorized"
+        ]));
+        return $response->withStatus(401)->withHeader("Content-Type", "application/json");
+    }
+
     global $connection;
 
     // Holt JSON-Daten aus dem Request
@@ -584,6 +713,11 @@ $app->post("/product", function (Request $request, Response $response, $args) {
  *         description="Ungültige Eingabe oder Kategorie existiert nicht"
  *     ),
  *
+ *  *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *     ),
+ * 
  *     @OA\Response(
  *         response=404,
  *         description="Produkt wurde nicht gefunden"
@@ -598,6 +732,14 @@ $app->post("/product", function (Request $request, Response $response, $args) {
 
 // Product Put Rout, Aktualisiert ein bestehendes Produkt
 $app->put("/product/{product_id}", function (Request $request, Response $response, $args) {
+
+    if (!requireAuth()) {
+        $response->getBody()->write(json_encode([
+            "error" => "Unauthorized"
+        ]));
+        return $response->withStatus(401)->withHeader("Content-Type", "application/json");
+    }
+
     global $connection;
 
     // Holt ID des Produkts
@@ -698,6 +840,11 @@ $app->put("/product/{product_id}", function (Request $request, Response $respons
  *         )
  *     ),
  *
+ *  *     @OA\Response(
+ *         response=401,
+ *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *     ),
+ * 
  *     @OA\Response(
  *         response=404,
  *         description="Produkt wurde nicht gefunden"
@@ -712,6 +859,14 @@ $app->put("/product/{product_id}", function (Request $request, Response $respons
 
 // Product Delete Rout, Löscht ein Produkt anhand der ID
 $app->delete("/product/{product_id}", function (Request $request, Response $response, $args) {
+
+    if (!requireAuth()) {
+        $response->getBody()->write(json_encode([
+            "error" => "Unauthorized"
+        ]));
+        return $response->withStatus(401)->withHeader("Content-Type", "application/json");
+    }
+
     global $connection;
 
     // Holt ID des Produkts

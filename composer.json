@@ -2,6 +2,9 @@
     "require": {
         "slim/slim": "4.*",
         "slim/psr7": "^1.7",
-        "zircote/swagger-php": "^5.5"
+        "radebatz/type-info-extras": "^1.0",
+        "zircote/swagger-php": "^5.5",
+        "doctrine/annotations": "^2.0",
+        "rbdwllr/reallysimplejwt": "^5.0"
     }
 }
