@@ -1,7 +1,7 @@
 <?php
 use ReallySimpleJWT\Token;
 
-$config = require_once __DIR__ . "/src/config.php";
+$config = require_once __DIR__ . "/../src/config.php";
 
 function createToken($userId) {
     global $config;

@@ -1,0 +1,352 @@
+openapi: 3.0.0
+info:
+  title: 'Online Shop API'
+  description: 'REST API für Kategorien und Produkte (Slim + MySQL)'
+  version: 1.0.0
+paths:
+  '/category/{category_id}':
+    get:
+      tags:
+        - Category
+      summary: 'Kategorie abrufen'
+      description: 'Liest eine Kategorie anhand der Kategorie-ID aus.'
+      parameters:
+        -
+          name: category_id
+          in: path
+          description: 'Die ID der gewünschten Kategorie'
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Kategorie erfolgreich gefunden'
+          content:
+            application/json:
+              schema:
+                properties:
+                  category_id: { type: integer, example: 1 }
+                  name: { type: string, example: 'Black Templars' }
+                  active: { type: integer, example: 1 }
+                type: object
+        '401':
+          description: 'Unauthorized – Token fehlt oder ist ungültig'
+        '404':
+          description: 'Kategorie wurde nicht gefunden'
+        '500':
+          description: 'Interner Serverfehler'
+    put:
+      tags:
+        - Category
+      summary: 'Kategorie aktualisieren'
+      description: 'Aktualisiert eine bestehende Kategorie anhand ihrer ID.'
+      parameters:
+        -
+          name: category_id
+          in: path
+          description: 'ID der zu aktualisierenden Kategorie'
+          required: true
+          schema:
+            type: integer
+            example: 5
+      requestBody:
+        description: 'Neue Werte für die Kategorie'
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - name
+                - active
+              properties:
+                name:
+                  type: string
+                  example: 'Black Templars Updated'
+                active:
+                  type: integer
+                  example: 0
+              type: object
+      responses:
+        '200':
+          description: 'Kategorie erfolgreich aktualisiert'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Category updated' }
+                  recieved_name: { type: string, example: 'Black Templars Updated' }
+                  recieved_active: { type: integer, example: 0 }
+                type: object
+        '401':
+          description: 'Unauthorized – Token fehlt oder ist ungültig'
+        '404':
+          description: 'Kategorie wurde nicht gefunden'
+        '500':
+          description: 'Interner Serverfehler'
+    delete:
+      tags:
+        - Category
+      summary: 'Kategorie löschen'
+      description: 'Löscht eine bestehende Kategorie anhand ihrer ID.'
+      parameters:
+        -
+          name: category_id
+          in: path
+          description: 'ID der zu löschenden Kategorie'
+          required: true
+          schema:
+            type: integer
+            example: 3
+      responses:
+        '200':
+          description: 'Kategorie erfolgreich gelöscht'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Category deleted' }
+                  category_id: { type: integer, example: 3 }
+                type: object
+        '401':
+          description: 'Unauthorized – Token fehlt oder ist ungültig'
+        '404':
+          description: 'Kategorie wurde nicht gefunden'
+        '500':
+          description: 'Interner Serverfehler'
+  /category:
+    post:
+      tags:
+        - Category
+      summary: 'Neue Kategorie erstellen'
+      description: 'Erstellt eine neue Kategorie mit Name und Active-Status.'
+      requestBody:
+        description: 'Daten für die neue Kategorie'
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - name
+                - active
+              properties:
+                name:
+                  type: string
+                  example: 'Black Templars'
+                active:
+                  type: integer
+                  example: 1
+              type: object
+      responses:
+        '201':
+          description: 'Kategorie erfolgreich erstellt'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Category created' }
+                  received_name: { type: string, example: 'Black Templars' }
+                  received_active: { type: integer, example: 1 }
+                type: object
+        '400':
+          description: 'Fehlende oder ungültige Felder'
+        '401':
+          description: 'Unauthorized – Token fehlt oder ist ungültig'
+        '500':
+          description: 'Interner Serverfehler'
+  '/product/{product_id}':
+    get:
+      tags:
+        - Product
+      summary: 'Ein Produkt anhand der ID abrufen'
+      description: 'Gibt die Daten eines Produkts zurück. Falls die ID nicht existiert, wird ein 404 zurückgegeben.'
+      parameters:
+        -
+          name: product_id
+          in: path
+          description: 'Die ID des Produkts'
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: 'Produkt erfolgreich gefunden'
+          content:
+            application/json:
+              schema:
+                properties:
+                  product_id: { type: integer, example: 1 }
+                  sku: { type: string, example: BT01 }
+                  active: { type: integer, example: 1 }
+                  id_category: { type: integer, example: 14 }
+                  name: { type: string, example: 'Terminator Squad' }
+                  image: { type: string, example: terminator.jpg }
+                  description: { type: string, example: 'Elite heavy infantry.' }
+                  price: { type: number, format: float, example: 99.9 }
+                  stock: { type: integer, example: 50 }
+                type: object
+        '401':
+          description: 'Unauthorized – Token fehlt oder ist ungültig'
+        '404':
+          description: 'Produkt wurde nicht gefunden'
+        '500':
+          description: 'Interner Serverfehler'
+    put:
+      tags:
+        - Product
+      summary: 'Ein Produkt aktualisieren'
+      description: "Aktualisiert ein existierendes Produkt anhand der ID. \r\n *                  Falls das Produkt nicht existiert, wird ein 404-Fehler zurückgegeben.\r\n *                  Falls die zugehörige Kategorie nicht existiert, wird ein 400-Fehler zurückgegeben."
+      parameters:
+        -
+          name: product_id
+          in: path
+          description: 'Die ID des zu aktualisierenden Produkts'
+          required: true
+          schema:
+            type: integer
+            example: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - sku
+                - id_category
+                - name
+              properties:
+                sku:
+                  type: string
+                  example: BT02-UPDATED
+                active:
+                  type: integer
+                  example: 1
+                id_category:
+                  type: integer
+                  example: 14
+                name:
+                  type: string
+                  example: 'Primaris Intercessor – Updated'
+                image:
+                  type: string
+                  example: intercessor_new.jpg
+                description:
+                  type: string
+                  example: 'Updated description.'
+                price:
+                  type: number
+                  format: float
+                  example: 39.9
+                stock:
+                  type: integer
+                  example: 20
+              type: object
+      responses:
+        '200':
+          description: 'Produkt erfolgreich aktualisiert'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Product updated' }
+                  product_id: { type: integer, example: 2 }
+                type: object
+        '400':
+          description: 'Ungültige Eingabe oder Kategorie existiert nicht'
+        '401':
+          description: 'Unauthorized – Token fehlt oder ist ungültig'
+        '404':
+          description: 'Produkt wurde nicht gefunden'
+        '500':
+          description: 'Interner Serverfehler'
+    delete:
+      tags:
+        - Product
+      summary: 'Ein Produkt löschen'
+      description: "Löscht ein Produkt anhand der ID. \r\n *                  Falls das Produkt nicht existiert, wird ein 404-Fehler zurückgegeben."
+      parameters:
+        -
+          name: product_id
+          in: path
+          description: 'Die ID des zu löschenden Produkts'
+          required: true
+          schema:
+            type: integer
+            example: 2
+      responses:
+        '200':
+          description: 'Produkt erfolgreich gelöscht'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Product deleted' }
+                  product_id: { type: integer, example: 2 }
+                type: object
+        '401':
+          description: 'Unauthorized – Token fehlt oder ist ungültig'
+        '404':
+          description: 'Produkt wurde nicht gefunden'
+        '500':
+          description: 'Interner Serverfehler'
+  /product:
+    post:
+      tags:
+        - Product
+      summary: 'Produkt anlegen'
+      description: "Erstellt ein neues Produkt. 'sku', 'name' und 'id_category' sind Pflichtfelder."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                sku:
+                  type: string
+                  example: BT01
+                active:
+                  type: integer
+                  example: 1
+                id_category:
+                  type: integer
+                  example: 14
+                name:
+                  type: string
+                  example: 'Terminator Squad'
+                image:
+                  type: string
+                  example: terminator.jpg
+                description:
+                  type: string
+                  example: 'Elite heavy infantry.'
+                price:
+                  type: number
+                  format: float
+                  example: 99.9
+                stock:
+                  type: integer
+                  example: 50
+              type: object
+      responses:
+        '201':
+          description: 'Produkt erfolgreich erstellt'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Product created' }
+                  sku: { type: string, example: BT01 }
+                  id_category: { type: integer, example: 14 }
+                type: object
+        '400':
+          description: 'Ungültige oder fehlende Daten (z. B. Pflichtfelder oder Category existiert nicht)'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error: { type: string, example: 'Category does not exist' }
+                type: object
+        '401':
+          description: 'Unauthorized – Token fehlt oder ist ungültig'
+        '500':
+          description: 'Interner Serverfehler'

@@ -1,4 +1,5 @@
 <?php
+namespace App;
 
 /**
  * @OA\OpenApi(
@@ -8,9 +9,9 @@
  *         description="REST API für Kategorien und Produkte (Slim + MySQL)"
  *     )
  * )
-*/
+ */
 
-namespace PublicFolder;
+
 
 
 use Psr\Http\Message\ResponseInterface as Response;
@@ -59,6 +60,7 @@ $app->post('/login', function (Request $request, Response $response){
         ]));
         return $response->withStatus(401)->withHeader("Content-Type", "application/json");
     }
+    
 
         // Token erstellen
         $token = createToken(1);
@@ -108,19 +110,13 @@ $app->post('/login', function (Request $request, Response $response){
  *         )
  *     ),
  *
- * *     @OA\Response(
- *         response=401,
- *         description="Unauthorized – Token fehlt oder ist ungültig"
+ * *     @OA\Response(response=401, description="Unauthorized – Token fehlt oder ist ungültig"
  *     ), 
  * 
- *     @OA\Response(
- *         response=404,
- *         description="Kategorie wurde nicht gefunden"
+ *     @OA\Response(response=404, description="Kategorie wurde nicht gefunden"
  *     ),
  *
- *     @OA\Response(
- *         response=500,
- *         description="Interner Serverfehler"
+ *     @OA\Response(response=500, description="Interner Serverfehler"
  *     )
  * )
  */
@@ -190,19 +186,13 @@ $app->get('/category/{category_id}', function (Request $request, Response $respo
  *         )
  *     ),
  *
- *     @OA\Response(
- *         response=400,
- *         description="Fehlende oder ungültige Felder"
+ *     @OA\Response(response=400, description="Fehlende oder ungültige Felder"
  *     ),
  *
- *  *     @OA\Response(
- *         response=401,
- *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *  *     @OA\Response(response=401, description="Unauthorized – Token fehlt oder ist ungültig"
  *     ),
  * 
- *     @OA\Response(
- *         response=500,
- *         description="Interner Serverfehler"
+ *     @OA\Response(response=500, description="Interner Serverfehler"
  *     )
  * )
  */
@@ -291,19 +281,13 @@ $app->post('/category', function (Request $request, Response $response, $args) {
  *         )
  *     ),
  *
- *  *     @OA\Response(
- *         response=401,
- *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *  *     @OA\Response(response=401, description="Unauthorized – Token fehlt oder ist ungültig"
  *     ),
  * 
- *     @OA\Response(
- *         response=404,
- *         description="Kategorie wurde nicht gefunden"
+ *     @OA\Response(response=404, description="Kategorie wurde nicht gefunden"
  *     ),
  *
- *     @OA\Response(
- *         response=500,
- *         description="Interner Serverfehler"
+ *     @OA\Response(response=500, description="Interner Serverfehler"
  *     )
  * )
  */
@@ -390,19 +374,13 @@ $app->put("/category/{category_id}", function (Request $request, Response $respo
  *         )
  *     ),
  *
- *  *     @OA\Response(
- *         response=401,
- *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *  *     @OA\Response(response=401, description="Unauthorized – Token fehlt oder ist ungültig"
  *     ),
  * 
- *     @OA\Response(
- *         response=404,
- *         description="Kategorie wurde nicht gefunden"
+ *     @OA\Response(response=404, description="Kategorie wurde nicht gefunden"
  *     ),
  *
- *     @OA\Response(
- *         response=500,
- *         description="Interner Serverfehler"
+ *     @OA\Response(response=500, description="Interner Serverfehler"
  *     )
  * )
  */
@@ -482,19 +460,13 @@ $app->delete("/category/{category_id}", function (Request $request, Response $re
  *         )
  *     ),
  *
- *  *     @OA\Response(
- *         response=401,
- *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *  *     @OA\Response(response=401, description="Unauthorized – Token fehlt oder ist ungültig"
  *     ),
  * 
- *     @OA\Response(
- *         response=404,
- *         description="Produkt wurde nicht gefunden"
+ *     @OA\Response(response=404, description="Produkt wurde nicht gefunden"
  *     ),
  *
- *     @OA\Response(
- *         response=500,
- *         description="Interner Serverfehler"
+ *     @OA\Response(response=500, description="Interner Serverfehler"
  *     )
  * )
  */
@@ -581,14 +553,10 @@ $app->get("/product/{product_id}", function (Request $request, Response $respons
  *         )
  *     ),
  *
- *  *     @OA\Response(
- *         response=401,
- *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *  *     @OA\Response(response=401, description="Unauthorized – Token fehlt oder ist ungültig"
  *     ),
  * 
- *     @OA\Response(
- *         response=500,
- *         description="Interner Serverfehler"
+ *     @OA\Response(response=500, description="Interner Serverfehler"
  *     )
  * )
  */
@@ -708,24 +676,16 @@ $app->post("/product", function (Request $request, Response $response, $args) {
  *         )
  *     ),
  *
- *     @OA\Response(
- *         response=400,
- *         description="Ungültige Eingabe oder Kategorie existiert nicht"
+ *     @OA\Response(response=400, description="Ungültige Eingabe oder Kategorie existiert nicht"
  *     ),
  *
- *  *     @OA\Response(
- *         response=401,
- *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *  *     @OA\Response(response=401, description="Unauthorized – Token fehlt oder ist ungültig"
  *     ),
  * 
- *     @OA\Response(
- *         response=404,
- *         description="Produkt wurde nicht gefunden"
+ *     @OA\Response(response=404, description="Produkt wurde nicht gefunden"
  *     ),
  *
- *     @OA\Response(
- *         response=500,
- *         description="Interner Serverfehler"
+ *     @OA\Response(response=500, description="Interner Serverfehler"
  *     )
  * )
  */
@@ -840,19 +800,13 @@ $app->put("/product/{product_id}", function (Request $request, Response $respons
  *         )
  *     ),
  *
- *  *     @OA\Response(
- *         response=401,
- *         description="Unauthorized – Token fehlt oder ist ungültig"
+ *  *     @OA\Response(response=401, description="Unauthorized – Token fehlt oder ist ungültig"
  *     ),
  * 
- *     @OA\Response(
- *         response=404,
- *         description="Produkt wurde nicht gefunden"
+ *     @OA\Response(response=404, description="Produkt wurde nicht gefunden"
  *     ),
  *
- *     @OA\Response(
- *         response=500,
- *         description="Interner Serverfehler"
+ *     @OA\Response(response=500, description="Interner Serverfehler"
  *     )
  * )
  */
@@ -900,5 +854,5 @@ $app->delete("/product/{product_id}", function (Request $request, Response $resp
     return $response->withHeader("Content-Type", "application/json");
 });
 
-$app->run();
+    $app->run();
 ?>
